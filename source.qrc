@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/new">
+        <file>images/Pause_64.png</file>
+        <file>images/Play_64.png</file>
+        <file>images/Arrow_16.png</file>
+    </qresource>
+</RCC>
