@@ -14,6 +14,13 @@
 #include<QDebug>
 #include<QSqlDatabase>
 #include<QSqlQuery>
+#include<QNetworkAccessManager>
+#include<QNetworkReply>
+#include<QNetworkRequest>
+#include<QJsonDocument>
+#include<QJsonArray>
+#include<QVariantList>
+#include<QLabel>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +33,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void mkdir_temp();
+    void save_image(QNetworkReply *reply,QString name);
 protected:
     void mousePressEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
@@ -44,6 +53,11 @@ private slots:
     void play_cloud_music();
     void load_music_list();
     void save_music_list();
+    void get_music_lists(QJsonDocument);
+    void next_page();
+    void last_page();
+    void reply_finished(QNetworkReply *);
+    void list_refresh();
 private:
     Ui::MainWindow *ui;
     QMediaPlayer *player;
@@ -57,6 +71,16 @@ private:
     int statue;
 
     QPoint dragPos;
+    QNetworkAccessManager *manager;
+    int page;
+    QString music_list_url;
+    int net_statue;
+
+    QStringList *id_list;
+    QList<QPushButton *> BTN_list,image_btns;
+    QList<QLabel *> label_list;
+    QStringList cover_image_list;
+    QStringList image_names;
 };
 
 #endif // MAINWINDOW_H

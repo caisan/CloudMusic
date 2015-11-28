@@ -33,7 +33,7 @@
      <string notr="true"/>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -683,7 +683,7 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Menu</string>
+     <string>≡</string>
     </property>
     <addaction name="load_action"/>
     <addaction name="exit_action"/>
@@ -692,7 +692,7 @@
   </widget>
   <action name="load_action">
    <property name="text">
-    <string>导入本地音乐</string>
+    <string>导入</string>
    </property>
   </action>
   <action name="exit_action">

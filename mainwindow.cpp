@@ -11,8 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
      setWindowIcon(QIcon("images/cloudmusic.png"));
      setWindowFlags(Qt::FramelessWindowHint);
      setAttribute(Qt::WA_TranslucentBackground);//透明
-     //setWindowOpacity(0.7);
-     load_cloud_music();
+
      statue=3;
      connect(ui->play_BTN,SIGNAL(clicked(bool)),this,SLOT(music_play()));
      connect(ui->stop_BTN,SIGNAL(clicked(bool)),this,SLOT(music_stop()));
@@ -24,7 +23,50 @@ MainWindow::MainWindow(QWidget *parent) :
      connect(ui->next_BTN,SIGNAL(clicked(bool)),this,SLOT(next_music()));
      connect(ui->exit_action,SIGNAL(triggered(bool)),this,SLOT(close()));
      connect(player,SIGNAL(currentMediaChanged(QMediaContent)),this,SLOT(music_changed()));
+     connect(ui->next_page_BTN,SIGNAL(clicked(bool)),this,SLOT(next_page()));
+     connect(ui->last_page_BTN,SIGNAL(clicked(bool)),this,SLOT(last_page()));
+     connect(ui->refesh_BTN,SIGNAL(clicked(bool)),this,SLOT(list_refresh()));
 
+     label_list.append(ui->list_name_1);
+     label_list.append(ui->list_name_2);
+     label_list.append(ui->list_name_3);
+     label_list.append(ui->list_name_4);
+     label_list.append(ui->list_name_5);
+     label_list.append(ui->list_name_6);
+     label_list.append(ui->list_name_7);
+     label_list.append(ui->list_name_8);
+     label_list.append(ui->list_name_9);
+
+     BTN_list.append(ui->list_play_1);
+     BTN_list.append(ui->list_play_2);
+     BTN_list.append(ui->list_play_3);
+     BTN_list.append(ui->list_play_4);
+     BTN_list.append(ui->list_play_5);
+     BTN_list.append(ui->list_play_6);
+     BTN_list.append(ui->list_play_7);
+     BTN_list.append(ui->list_play_8);
+     BTN_list.append(ui->list_play_9);
+
+     image_btns.append(ui->image_1);
+     image_btns.append(ui->image_2);
+     image_btns.append(ui->image_3);
+     image_btns.append(ui->image_4);
+     image_btns.append(ui->image_5);
+     image_btns.append(ui->image_6);
+     image_btns.append(ui->image_7);
+     image_btns.append(ui->image_8);
+     image_btns.append(ui->image_9);
+
+     page=0;
+     net_statue=1;
+     music_list_url="http://127.0.0.1:8000/musiclist/?page=";
+     manager=new QNetworkAccessManager(this);
+     manager->get(QNetworkRequest(QUrl(music_list_url+QString::number(page,10))));
+     ui->last_page_BTN->setEnabled(false);
+     id_list=new QStringList;
+     connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(reply_finished(QNetworkReply*)));
+
+     mkdir_temp();
      load_music_list();
 }
 
@@ -264,4 +306,84 @@ void MainWindow::save_music_list()
         query.exec();
     }
     db.close();
+}
+
+void MainWindow::reply_finished(QNetworkReply *reply)
+{
+    if(net_statue==2)
+    {
+        save_image(reply,"temp/"+reply->url().toString().split("/").last());
+    }
+
+    if(net_statue==1)
+    {
+        get_music_lists(QJsonDocument::fromJson(reply->readAll()));
+    }
+}
+void MainWindow::save_image(QNetworkReply *reply,QString name)
+{
+    QPixmap *currentPicture = new QPixmap;
+    currentPicture->loadFromData(reply->readAll());
+    currentPicture->save(name);
+}
+
+void MainWindow::get_music_lists(QJsonDocument json_data)
+{
+    id_list->clear();
+    image_names.clear();
+    QVariantList data_list=json_data.toVariant().toList();
+    int i=0;
+    foreach(QVariant item,data_list)
+    {
+        QVariantMap item_map = item.toMap();
+        id_list->append(item_map[QLatin1String("id")].toString());
+        label_list[i]->setText(item_map[QLatin1String("name")].toString());
+        cover_image_list.append(item_map[QLatin1String("image_url")].toString()+"?param=140y140");
+        ++i;
+    }
+    net_statue=2;
+    QDir *temp = new QDir;
+    foreach (QString url, cover_image_list)
+    {
+        qDebug()<<url;
+        QString image_name="temp/"+url.split("/").last();
+        image_names.append(image_name);
+        bool exist = temp->exists(image_name);
+        if(!exist)
+        {
+            manager->get(QNetworkRequest(QUrl(url)));
+        }
+    }
+}
+
+void MainWindow::last_page()
+{
+    page+=1;
+    net_statue=1;
+    manager->get(QNetworkRequest(QUrl(music_list_url+QString::number(page,10))));
+    if(page==0)
+        ui->last_page_BTN->setEnabled(false);
+}
+
+void MainWindow::next_page()
+{
+    page+=1;
+    net_statue=1;
+    manager->get(QNetworkRequest(QUrl(music_list_url+QString::number(page,10))));
+    ui->last_page_BTN->setEnabled(false);
+}
+
+void MainWindow::list_refresh()
+{
+
+}
+
+void MainWindow::mkdir_temp()
+{
+        QDir *temp = new QDir;
+        bool exist = temp->exists("temp");
+        if(!exist)
+        {
+            temp->mkdir("temp");
+        }
 }
