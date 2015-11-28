@@ -3,5 +3,8 @@
         <file>images/Pause_64.png</file>
         <file>images/Play_64.png</file>
         <file>images/Arrow_16.png</file>
+        <file>images/next_64.png</file>
+        <file>images/previous_34.png</file>
+        <file>images/Refresh_48.png</file>
     </qresource>
 </RCC>

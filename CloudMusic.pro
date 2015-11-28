@@ -5,8 +5,9 @@
 #-------------------------------------------------
 
 QT       += core gui
-QT     += webkitwidgets
-QT += multimedia
+QT       += webkitwidgets
+QT       += multimedia
+QT       +=sql
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = CloudMusic
@@ -14,9 +15,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    get_cloud_music.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    get_cloud_music.h
 
 FORMS    += mainwindow.ui
 
