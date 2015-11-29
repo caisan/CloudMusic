@@ -35,6 +35,7 @@ public:
     ~MainWindow();
     void mkdir_temp();
     void save_image(QNetworkReply *reply,QString name);
+    void load_image();
 protected:
     void mousePressEvent(QMouseEvent *);
     void mouseMoveEvent(QMouseEvent *);
@@ -58,6 +59,8 @@ private slots:
     void last_page();
     void reply_finished(QNetworkReply *);
     void list_refresh();
+    void get_list_images();
+    void list_play_pressed();
 private:
     Ui::MainWindow *ui;
     QMediaPlayer *player;

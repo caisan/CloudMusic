@@ -443,7 +443,7 @@ void MainWindow::list_play_pressed()
         if(btn->isDown())
         {
             int index=BTN_list.indexOf(btn);
-
+            manager->get(QUrl())
             return;
         }
     }
