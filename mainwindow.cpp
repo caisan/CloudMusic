@@ -454,11 +454,14 @@ void MainWindow::load_image()
 
 void MainWindow::list_play_pressed()
 {
+    if(id_list->isEmpty())
+        return;
     foreach(QPushButton *btn,BTN_list)
     {
         if(btn->isDown())
         {
             int index=BTN_list.indexOf(btn);
+            qDebug()<<index;
             image_index=index;
             net_statue=3;
             manager->get(QNetworkRequest(QUrl("http://115.159.49.85:8000/songs/?id="+id_list->at(index))));
@@ -469,7 +472,8 @@ void MainWindow::list_play_pressed()
     {
         if(btn->isDown())
         {
-            int index=BTN_list.indexOf(btn);
+            int index=image_btns.indexOf(btn);
+            qDebug()<<index;
             image_index=index;
             net_statue=3;
             manager->get(QNetworkRequest(QUrl(QString("http://115.159.49.85:8000/songs/?id=")+id_list->at(index))));
