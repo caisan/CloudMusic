@@ -218,6 +218,7 @@ void MainWindow::next_music()
         if((index+1)==local_play_list->mediaCount())
             index=-1;
         local_play_list->setCurrentIndex(++index);
+        ui->local_list->setCurrentRow(index);
         player->play();
         ui->play_BTN->setIcon(QIcon("images/Pause_64.png"));
         ok=false;
@@ -228,6 +229,7 @@ void MainWindow::next_music()
         if((index+1)==cloud_play_list->mediaCount())
             index=-1;
         cloud_play_list->setCurrentIndex(++index);
+        ui->cloud_list->setCurrentRow(index);
         player->play();
         ui->play_BTN->setIcon(QIcon("images/Pause_64.png"));
         ok=false;
@@ -239,14 +241,12 @@ void MainWindow::music_changed()
     if(statue==1)
     {
         int index=local_play_list->currentIndex();
-        ui->local_list->setCurrentRow(index);
         QString name=ui->local_list->item(index)->text();
         ui->song_name->setText(name);
     }
     if(statue==2)
     {
         int index=cloud_play_list->currentIndex();
-        ui->cloud_list->setCurrentRow(index);
         QString name=ui->cloud_list->item(index)->text();
         ui->song_name->setText(name);
     }
