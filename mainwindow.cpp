@@ -225,7 +225,7 @@ void MainWindow::next_music()
     if(statue==2)
     {
         int index=cloud_play_list->currentIndex();
-        if(++index==cloud_play_list->mediaCount())
+        if((index+1)==cloud_play_list->mediaCount())
             index=-1;
         cloud_play_list->setCurrentIndex(++index);
         player->play();
@@ -239,12 +239,14 @@ void MainWindow::music_changed()
     if(statue==1)
     {
         int index=local_play_list->currentIndex();
+        ui->local_list->setCurrentRow(index);
         QString name=ui->local_list->item(index)->text();
         ui->song_name->setText(name);
     }
     if(statue==2)
     {
         int index=cloud_play_list->currentIndex();
+        ui->cloud_list->setCurrentRow(index);
         QString name=ui->cloud_list->item(index)->text();
         ui->song_name->setText(name);
     }
@@ -252,7 +254,8 @@ void MainWindow::music_changed()
 
 void MainWindow::load_cloud_music(QJsonDocument json_data)
 {
-        play_local_music();
+        player->setPlaylist(local_play_list);
+        player->play();
         QVariantList data_list=json_data.toVariant().toList();
         cloud_play_list->clear();
         ui->cloud_list->clear();
@@ -263,6 +266,7 @@ void MainWindow::load_cloud_music(QJsonDocument json_data)
             QListWidgetItem *list_item=new QListWidgetItem(item[QLatin1String("name")].toString()+QString("--")+item[QLatin1String("artists")].toString());
             ui->cloud_list->addItem(list_item);
         }
+        ui->cloud_list->setCurrentRow(0);
         play_cloud_music();
 }
 
@@ -461,7 +465,6 @@ void MainWindow::list_play_pressed()
         if(btn->isDown())
         {
             int index=BTN_list.indexOf(btn);
-            qDebug()<<index;
             image_index=index;
             net_statue=3;
             manager->get(QNetworkRequest(QUrl("http://115.159.49.85:8000/songs/?id="+id_list->at(index))));
@@ -473,7 +476,6 @@ void MainWindow::list_play_pressed()
         if(btn->isDown())
         {
             int index=image_btns.indexOf(btn);
-            qDebug()<<index;
             image_index=index;
             net_statue=3;
             manager->get(QNetworkRequest(QUrl(QString("http://115.159.49.85:8000/songs/?id=")+id_list->at(index))));
