@@ -50,7 +50,7 @@ private slots:
     void play_local_music();
     void next_music();
     void music_changed();
-    void load_cloud_music();
+    void load_cloud_music(QJsonDocument);
     void play_cloud_music();
     void load_music_list();
     void save_music_list();
@@ -84,6 +84,7 @@ private:
     QList<QLabel *> label_list;
     QStringList cover_image_list;
     QStringList image_names;
+    int image_index;
 };
 
 #endif // MAINWINDOW_H

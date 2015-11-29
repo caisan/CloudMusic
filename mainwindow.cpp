@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
      connect(ui->time_Slider,SIGNAL(sliderMoved(int)),this,SLOT(positionMove(int)));
      connect(ui->load_action,SIGNAL(triggered(bool)),this,SLOT(load_local_music()));
      connect(ui->local_list,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(play_local_music()));
+     connect(ui->cloud_list,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(play_cloud_music()));
      connect(ui->next_BTN,SIGNAL(clicked(bool)),this,SLOT(next_music()));
      connect(ui->exit_action,SIGNAL(triggered(bool)),this,SLOT(close()));
      connect(player,SIGNAL(currentMediaChanged(QMediaContent)),this,SLOT(music_changed()));
@@ -68,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
      page=0;
      net_statue=1;
-     music_list_url="http://127.0.0.1:8888/musiclist/?page=";
+     music_list_url="http://115.159.49.85:8000/musiclist/?page=";
      manager=new QNetworkAccessManager(this);
      manager->get(QNetworkRequest(QUrl(music_list_url+QString::number(page,10))));
      ui->last_page_BTN->setEnabled(false);
@@ -83,9 +84,9 @@ void MainWindow::init_ui()
 {
     play_icon=new QPixmap;
     music_icon=new QPixmap;
-    music_icon->load("images/music_72.png");
     play_icon->load("images/Play_64.png");
 
+    ui->image_label->setScaledContents(true);
     ui->play_BTN->setIconSize(QSize(play_icon->width()-15,play_icon->height()-18));
     ui->play_BTN->setIcon(QIcon("images/Play_64.png"));
     ui->next_BTN->setIcon(QIcon("images/Arrow_16.png"));
@@ -118,9 +119,6 @@ void MainWindow::init_ui()
     ui->stop_BTN->setFlat(true);
     ui->next_BTN->setFlat(true);
     ok=true;
-
-    ui->image_label->setScaledContents(true);
-    ui->image_label->setPixmap(*music_icon);
     ui->song_name->setScaledContents(true);
 
     player=new QMediaPlayer(this);
@@ -189,6 +187,7 @@ void MainWindow::load_local_music()
             ui->local_list->addItem(item);
         }
     }
+    ui->local_list->setCurrentRow(0);
     save_music_list();
 }
 
@@ -199,6 +198,8 @@ void MainWindow::play_local_music()
     local_play_list->setCurrentIndex(index);
     player->play();
     ui->play_BTN->setIcon(QIcon("images/Pause_64.png"));
+    music_icon->load("images/music_72.png");
+    ui->image_label->setPixmap(*music_icon);
     ok=false;
     statue=1;
     music_changed();
@@ -244,17 +245,39 @@ void MainWindow::music_changed()
     if(statue==2)
     {
         int index=cloud_play_list->currentIndex();
+        QString name=ui->cloud_list->item(index)->text();
+        ui->song_name->setText(name);
     }
 }
 
-void MainWindow::load_cloud_music()
+void MainWindow::load_cloud_music(QJsonDocument json_data)
 {
-
+        play_local_music();
+        QVariantList data_list=json_data.toVariant().toList();
+        cloud_play_list->clear();
+        ui->cloud_list->clear();
+        foreach(QVariant data,data_list)
+        {
+            QVariantMap item=data.toMap();
+            cloud_play_list->addMedia(QUrl(item[QLatin1String("url")].toString()));
+            QListWidgetItem *list_item=new QListWidgetItem(item[QLatin1String("name")].toString()+QString("--")+item[QLatin1String("artists")].toString());
+            ui->cloud_list->addItem(list_item);
+        }
+        play_cloud_music();
 }
 
 void MainWindow::play_cloud_music()
 {
-
+    player->setPlaylist(cloud_play_list);
+    int index=ui->cloud_list->currentRow();
+    cloud_play_list->setCurrentIndex(index);
+    player->play();
+    ui->play_BTN->setIcon(QIcon("images/Pause_64.png"));
+    music_icon->load(image_names.at(image_index));
+    ui->image_label->setPixmap(*music_icon);
+    ok=false;
+    statue=2;
+    music_changed();
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -331,9 +354,10 @@ void MainWindow::reply_finished(QNetworkReply *reply)
     }
     if(net_statue==3)
     {
-
+        load_cloud_music(QJsonDocument::fromJson(reply->readAll()));
     }
 }
+
 void MainWindow::save_image(QNetworkReply *reply,QString name)
 {
     QPixmap *currentPicture = new QPixmap;
@@ -435,6 +459,9 @@ void MainWindow::list_play_pressed()
         if(btn->isDown())
         {
             int index=BTN_list.indexOf(btn);
+            image_index=index;
+            net_statue=3;
+            manager->get(QNetworkRequest(QUrl("http://115.159.49.85:8000/songs/?id="+id_list->at(index))));
             return;
         }
     }
@@ -443,7 +470,9 @@ void MainWindow::list_play_pressed()
         if(btn->isDown())
         {
             int index=BTN_list.indexOf(btn);
-
+            image_index=index;
+            net_statue=3;
+            manager->get(QNetworkRequest(QUrl(QString("http://115.159.49.85:8000/songs/?id=")+id_list->at(index))));
             return;
         }
     }
