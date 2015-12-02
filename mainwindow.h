@@ -21,6 +21,7 @@
 #include<QJsonArray>
 #include<QVariantList>
 #include<QLabel>
+#include<QFileIconProvider>
 
 namespace Ui {
 class MainWindow;
@@ -61,6 +62,9 @@ private slots:
     void list_refresh();
     void get_list_images();
     void list_play_pressed();
+    void vote_song();
+    bool is_voted();
+    void app_close();
 private:
     Ui::MainWindow *ui;
     QMediaPlayer *player;

@@ -22,11 +22,12 @@ MainWindow::MainWindow(QWidget *parent) :
      connect(ui->local_list,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(play_local_music()));
      connect(ui->cloud_list,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(play_cloud_music()));
      connect(ui->next_BTN,SIGNAL(clicked(bool)),this,SLOT(next_music()));
-     connect(ui->exit_action,SIGNAL(triggered(bool)),this,SLOT(close()));
+     connect(ui->exit_action,SIGNAL(triggered(bool)),this,SLOT(app_close()));
      connect(player,SIGNAL(currentMediaChanged(QMediaContent)),this,SLOT(music_changed()));
      connect(ui->next_page_BTN,SIGNAL(clicked(bool)),this,SLOT(next_page()));
      connect(ui->last_page_BTN,SIGNAL(clicked(bool)),this,SLOT(last_page()));
      connect(ui->refesh_BTN,SIGNAL(clicked(bool)),this,SLOT(list_refresh()));
+     connect(ui->vote_btn,SIGNAL(clicked(bool)),this,SLOT(vote_song()));
 
      label_list.append(ui->list_name_1);
      label_list.append(ui->list_name_2);
@@ -94,6 +95,7 @@ void MainWindow::init_ui()
     ui->refesh_BTN->setIcon(QIcon("images/Refresh_48.png"));
     ui->next_page_BTN->setIcon(QIcon("images/next_64.png"));
     ui->last_page_BTN->setIcon(QIcon("images/previous_64.png"));
+    ui->search_btn->setIcon(QIcon("images/Search_23.png"));
     ui->list_play_1->setIcon(QIcon("images/Play_64.png"));
     ui->list_play_2->setIcon(QIcon("images/Play_64.png"));
     ui->list_play_3->setIcon(QIcon("images/Play_64.png"));
@@ -115,6 +117,7 @@ void MainWindow::init_ui()
     ui->refesh_BTN->setFlat(true);
     ui->next_page_BTN->setFlat(true);
     ui->last_page_BTN->setFlat(true);
+    ui->search_btn->setFlat(true);
     ui->play_BTN->setFlat(true);
     ui->stop_BTN->setFlat(true);
     ui->next_BTN->setFlat(true);
@@ -183,12 +186,11 @@ void MainWindow::load_local_music()
         {
             local_play_list->addMedia(QUrl::fromLocalFile(path));
             QString fileName=path.split("/").last().split(".").first();
-            QListWidgetItem *item=new QListWidgetItem(fileName);
+            QListWidgetItem *item=new QListWidgetItem(QIcon("images/Vote_76.png"),fileName,ui->local_list);
             ui->local_list->addItem(item);
         }
     }
     ui->local_list->setCurrentRow(0);
-    save_music_list();
 }
 
 void MainWindow::play_local_music()
@@ -243,12 +245,14 @@ void MainWindow::music_changed()
         int index=local_play_list->currentIndex();
         QString name=ui->local_list->item(index)->text();
         ui->song_name->setText(name);
+        ui->vote_btn->setIcon(QIcon("images/Vote_76.png"));
     }
     if(statue==2)
     {
         int index=cloud_play_list->currentIndex();
         QString name=ui->cloud_list->item(index)->text();
         ui->song_name->setText(name);
+        ui->vote_btn->setIcon(QIcon("images/Vote_76.png"));
     }
 }
 
@@ -263,10 +267,11 @@ void MainWindow::load_cloud_music(QJsonDocument json_data)
         {
             QVariantMap item=data.toMap();
             cloud_play_list->addMedia(QUrl(item[QLatin1String("url")].toString()));
-            QListWidgetItem *list_item=new QListWidgetItem(item[QLatin1String("name")].toString()+QString("--")+item[QLatin1String("artists")].toString());
+            QListWidgetItem *list_item=new QListWidgetItem(QIcon("images/Vote_76.png"),item[QLatin1String("name")].toString()+QString("--")+item[QLatin1String("artists")].toString());
             ui->cloud_list->addItem(list_item);
         }
         ui->cloud_list->setCurrentRow(0);
+        music_icon->load(image_names.at(image_index));
         play_cloud_music();
 }
 
@@ -277,7 +282,6 @@ void MainWindow::play_cloud_music()
     cloud_play_list->setCurrentIndex(index);
     player->play();
     ui->play_BTN->setIcon(QIcon("images/Pause_64.png"));
-    music_icon->load(image_names.at(image_index));
     ui->image_label->setPixmap(*music_icon);
     ok=false;
     statue=2;
@@ -312,7 +316,7 @@ void MainWindow::load_music_list()
     query.exec("select * from local_list");
     while(query.next())
     {
-        QListWidgetItem *item=new QListWidgetItem(query.value(0).toString());
+        QListWidgetItem *item=new QListWidgetItem(QIcon("images/Vote_76.png"),query.value(0).toString(),ui->local_list);
         ui->local_list->addItem(item);
         local_play_list->addMedia(QUrl::fromLocalFile(query.value(1).toString()));
     }
@@ -328,19 +332,19 @@ void MainWindow::save_music_list()
     {
         return;
     }
+    db.transaction();
     QSqlQuery query;
     query.exec("create table if not exists local_list (name TEXT,url TEXT primary key)");
-    query.exec("create table if not exists cloud_list (name TEXT,url TEXT primary key)");
-    query.exec("create table if not exists music_list (name TEXT,int code primary key)");
     for(int i=0;i<local_play_list->mediaCount();++i)
     {
-        query.prepare("insert into local_list (name,url)""values(?,?)");
+        query.prepare("insert into local_list (name,url) ""values(?,?)");
         QString name=ui->local_list->item(i)->text();
         QString url=local_play_list->media(i).canonicalUrl().path();
         query.addBindValue(name);
         query.addBindValue(url);
         query.exec();
     }
+    db.commit();
     db.close();
 }
 
@@ -360,6 +364,7 @@ void MainWindow::reply_finished(QNetworkReply *reply)
     {
         load_cloud_music(QJsonDocument::fromJson(reply->readAll()));
     }
+    reply->deleteLater();
 }
 
 void MainWindow::save_image(QNetworkReply *reply,QString name)
@@ -482,4 +487,21 @@ void MainWindow::list_play_pressed()
             return;
         }
     }
+}
+
+void MainWindow::app_close()
+{
+    save_music_list();
+    close();
+}
+
+
+void MainWindow::vote_song()
+{
+
+}
+
+bool MainWindow::is_voted()
+{
+
 }
